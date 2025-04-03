@@ -1,32 +1,45 @@
-version: '3'
+version: '3.8'
+
 services:
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: roman-converter-backend
     ports:
       - "8080:8080"
+    environment:
+      - FLASK_ENV=production
     volumes:
       - ./backend:/app
-    environment:
-      - FLASK_ENV=development
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: roman-converter-frontend
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/app
     depends_on:
       - backend
-
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    ports:
-      - "16686:16686"
-      - "6831:6831/udp"
-
-  prometheus:
-    image: prom/prometheus
-    ports:
-      - "9090:9090"
     volumes:
-      - ./backend/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - app-network
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  node_modules:
