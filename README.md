@@ -48,3 +48,7 @@ npm start
 
 the application run in http://localhost:3000/?query=98
     
+
+
+
+NOTE: don't forget to install the node modules in frontend
